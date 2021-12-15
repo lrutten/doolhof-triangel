@@ -3,4 +3,5 @@ all:
 
 clean:
 	rm -Rvf build
+	rm -Rvf cmake-build-debug/*
 

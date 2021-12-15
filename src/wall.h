@@ -1,10 +1,12 @@
 #ifndef WALL_H
 #define WALL_H
 
+#include <vector>
 #include "point.h"
 
 namespace dt
 {
+class Triangle;
 
 class Wall
 {
@@ -22,6 +24,7 @@ public:
 
 	Point *v;
 	Point *w;
+	std::vector<Triangle *> triangles;
 	bool              isBad = false;
    bool              open;      // is the wall open
    bool              drawn;  // is the muur drawn

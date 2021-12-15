@@ -29,11 +29,12 @@ public:
 	Point *a;
 	Point *b;
 	Point *c;
+	std::vector<Wall *>     walls;
+   std::vector<Triangle *> neighbours;
 	bool              isBad = false;
    bool              visited; // is already visited
    bool              onpad;   // this triangle is part of the path
    bool              white;   // this triangle must be avoided
-   std::vector<Wall *> walls;
 
    void setwhite()
    {
