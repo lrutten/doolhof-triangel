@@ -31,19 +31,17 @@ function BowyerWatson (pointList)
 
 namespace dt
 {
-class WallMap
-{
-public:
-   WallMap();
-   Wall *new_wall(Point *p1, Point *p2);
-   void show();
-
-private:
-   std::map<Point *, std::map<Point*, Wall *>> walls;
-};
 
 WallMap::WallMap()
 {
+}
+
+WallMap::~WallMap()
+{
+   for (auto el: getWalls())
+   {
+      delete el;
+   }
 }
 
 Wall *WallMap::new_wall(Point *p1, Point *p2)
@@ -67,14 +65,39 @@ Wall *WallMap::new_wall(Point *p1, Point *p2)
 
 void WallMap::show()
 {
+   std::cout << "walls\n";
+   for (auto &el: walls)
+   {
+      for (auto & el2: el.second)
+      {
+         Wall *wl = el2.second;
+         std::cout << "   walls\n";
+         
+         for (auto tr: wl->triangles)
+         {
+            std::cout << "      triangle\n";
+         }
+      }
+   }
+}
+
+std::vector<Wall *> WallMap::getWalls()
+{
+   std::vector<Wall *> wls;
    for (auto &el: walls)
    {
       for (auto & el2: el.second)
       {
          std::cout << "wall in map\n";
+         wls.push_back(el2.second);
       }
    }
+   return wls;
 }
+
+
+
+
 
 const std::vector<Triangle *>&
 Maze::triangulate(std::vector<Point *> &vertices)
@@ -205,21 +228,37 @@ Maze::triangulate(std::vector<Point *> &vertices)
       std::cout << "delete triangle b\n";
       delete tr;
    }
+   
+   // delete all the supertriangle vertices
+   delete sp1;
+   delete sp2;
+   delete sp3;
 
    // make a list of all the walls
-   WallMap wm;
 	for (const auto t : _triangles)
 	{
-		_walls.push_back(new Wall(t->a, t->b));
-		_walls.push_back(new Wall(t->b, t->c));
-		_walls.push_back(new Wall(t->c, t->a));
-
-      wm.new_wall(t->a, t->b);
-      wm.new_wall(t->b, t->c);
-      wm.new_wall(t->c, t->a);
-
+      Wall *w1 = _walls.new_wall(t->a, t->b);
+      Wall *w2 = _walls.new_wall(t->b, t->c);
+      Wall *w3 = _walls.new_wall(t->c, t->a);
+      
+      w1->addTriangle(t);
+      w2->addTriangle(t);
+      w3->addTriangle(t);
 	}
-   wm.show();
+   // _walls.show();
+   
+   // connect the triangles as neighbours
+   for (Wall *wl: _walls.getWalls())
+   {
+      if (wl->triangles.size() >= 2)
+      {
+         Triangle *tr0 = wl->triangles[0];
+         Triangle *tr1 = wl->triangles[1];
+         
+         tr0->neighbours.push_back(tr1);
+         tr1->neighbours.push_back(tr0);
+      }
+   }
 
 	return _triangles;
 }
@@ -230,10 +269,9 @@ Maze::getTriangles() const
 	return _triangles;
 }
 
-const std::vector<Wall *> &
-Maze::getWalls() const
+std::vector<Wall *> Maze::getWalls()
 {
-	return _walls;
+	return _walls.getWalls();
 }
 
 const std::vector<Point *>&
@@ -249,19 +287,26 @@ Maze::~Maze()
    {
       delete t;
    }
-   for (auto w: _walls)
-   {
-      delete w;
-   }
    for (auto v: _vertices)
    {
       delete v;
    }
 }
 
+void Maze::show()
+{
+   std::cout << "----Maze-----\n";
+   _walls.show();
+   
+   for (Triangle *tr: _triangles)
+   {
+      std::cout << "   triangle  neighb " << tr->neighbours.size() << "\n";
+   }
+}
+
 void Maze::connect()
 {
-   for (const dt::Wall *wa: _walls)
+   for (const dt::Wall *wa: _walls.getWalls())
    {
       std::cout << "Wall " << wa->nr << "\n";
       if (wa->v->border && wa->w->border)

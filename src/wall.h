@@ -36,8 +36,10 @@ public:
       return open;
    }
 
-	static_assert(std::is_floating_point<double>::value,
-		"Type must be floating-point");
+   void addTriangle(Triangle *tr)
+   {
+      triangles.push_back(tr);
+   }
 };
 
 bool almost_equal(const Wall *e1, const Wall *e2);

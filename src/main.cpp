@@ -121,14 +121,10 @@ int main(int argc, char * argv[])
 	std::cout << triangles.size() << " triangles generated in " << diff.count() << "s\n";
 	const std::vector<dt::Wall *> walls = triangulation->getWalls();
 
+	triangulation->show();
+	
    triangulation->connect();
 
-   /*
-	for (const dt::Wall<double> *wa: walls)
-   {
-	   std::cout << "Wall " << wa->nr << "\n";
-   }
-    */
 
    bool gui = true;
    if (gui)
@@ -138,14 +134,16 @@ int main(int argc, char * argv[])
       window.setFramerateLimit(1);
 
       // Transform each points of each vector as a rectangle
-      for (const auto p : points) {
+      for (const auto p : points) 
+      {
          sf::RectangleShape s{sf::Vector2f(4, 4)};
          s.setPosition(static_cast<float>(p->x), static_cast<float>(p->y));
          window.draw(s);
       }
 
       std::vector<std::array<sf::Vertex, 2> > lines;
-      for (const auto &e: walls) {
+      for (const auto &e: walls) 
+      {
          const std::array<sf::Vertex, 2> line
                  {{
                           sf::Vertex(sf::Vector2f(

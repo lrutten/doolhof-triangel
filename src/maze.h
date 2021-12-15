@@ -10,13 +10,26 @@
 
 namespace dt {
 
+class WallMap
+{
+public:
+   WallMap();
+   ~WallMap();
+   Wall *new_wall(Point *p1, Point *p2);
+   void show();
+	std::vector<Wall *> getWalls();
+
+private:
+   std::map<Point *, std::map<Point*, Wall *>> walls;
+};
+
 class Maze
 {
 public:
 	std::vector<Triangle *> _triangles;
-	std::vector<Wall *>     _walls;
+	WallMap                 _walls;
 	std::vector<Point *>    _vertices;
-   bool                      found;  // is the solution found?
+   bool                     found;  // is the solution found?
 
 public:
 
@@ -27,9 +40,10 @@ public:
 
 	const std::vector<Triangle *>& triangulate(std::vector<Point *> &vertices);
 	const std::vector<Triangle *>& getTriangles() const;
-	const std::vector<Wall *>& getWalls() const;
+	std::vector<Wall *> getWalls();
 	const std::vector<Point *>& getVertices() const;
    void connect();
+   void show();
 
 	Maze& operator=(const Maze&) = delete;
 	Maze& operator=(Maze&&) = delete;
