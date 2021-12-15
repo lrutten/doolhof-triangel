@@ -1,22 +1,94 @@
+#include <map>
+
 #include "maze.h"
+
+
+/*
+function BowyerWatson (pointList)
+   // pointList is a set of coordinates defining the points to be triangulated
+   triangulation := empty triangle mesh data structure
+   add super-triangle to triangulation // must be large enough to completely contain all the points in pointList
+   for each point in pointList do // add all the points one at a time to the triangulation
+      badTriangles := empty set
+      for each triangle in triangulation do // first find all the triangles that are no longer valid due to the insertion
+         if point is inside circumcircle of triangle
+            add triangle to badTriangles
+      polygon := empty set
+      for each triangle in badTriangles do // find the boundary of the polygonal hole
+         for each edge in triangle do
+            if edge is not shared by any other triangles in badTriangles
+               add edge to polygon
+         for each triangle in badTriangles do // remove them from the data structure
+            remove triangle from triangulation
+         for each edge in polygon do // re-triangulate the polygonal hole
+            newTri := form a triangle from edge to point
+            add newTri to triangulation
+   for each triangle in triangulation // done inserting points, now clean up
+      if triangle contains a vertex from original super-triangle
+         remove triangle from triangulation
+   return triangulation
+*/
 
 namespace dt
 {
+class WallMap
+{
+public:
+   WallMap();
+   Wall *new_wall(Point *p1, Point *p2);
+   void show();
 
-template<typename T>
-const std::vector<typename Maze<T>::TriangleType *>&
-Maze<T>::triangulate(std::vector<VertexType *> &vertices)
+private:
+   std::map<Point *, std::map<Point*, Wall *>> walls;
+};
+
+WallMap::WallMap()
+{
+}
+
+Wall *WallMap::new_wall(Point *p1, Point *p2)
+{
+   if (walls.find(p1) != walls.end() && walls[p1].find(p2) != walls[p1].end())
+   {
+      return walls[p1][p2];
+   }
+   else
+   if (walls.find(p2) != walls.end() && walls[p2].find(p1) != walls[p2].end())
+   {
+      return walls[p2][p1];
+   }
+   else
+   {
+      Wall *w = new Wall(p1, p2);
+      walls[p1][p2] = w;
+      return w;
+   }
+}
+
+void WallMap::show()
+{
+   for (auto &el: walls)
+   {
+      for (auto & el2: el.second)
+      {
+         std::cout << "wall in map\n";
+      }
+   }
+}
+
+const std::vector<Triangle *>&
+Maze::triangulate(std::vector<Point *> &vertices)
 {
 	// Store the vertices locally
 	_vertices = vertices;
 
 	// Determinate the super triangle
-	T minX = vertices[0]->x;
-	T minY = vertices[0]->y;
-	T maxX = minX;
-	T maxY = minY;
+   double minX = vertices[0]->x;
+   double minY = vertices[0]->y;
+   double maxX = minX;
+   double maxY = minY;
 
-	for(std::size_t i = 0; i < vertices.size(); ++i)
+	for (std::size_t i = 0; i < vertices.size(); ++i)
 	{
 		if (vertices[i]->x < minX) minX = vertices[i]->x;
 		if (vertices[i]->y < minY) minY = vertices[i]->y;
@@ -24,44 +96,64 @@ Maze<T>::triangulate(std::vector<VertexType *> &vertices)
 		if (vertices[i]->y > maxY) maxY = vertices[i]->y;
 	}
 
-	const T dx = maxX - minX;
-	const T dy = maxY - minY;
-	const T deltaMax = std::max(dx, dy);
-	const T midx = (minX + maxX) / 2;
-	const T midy = (minY + maxY) / 2;
+	const double dx = maxX - minX;
+	const double dy = maxY - minY;
+	const double deltaMax = std::max(dx, dy);
+	const double midx = (minX + maxX) / 2;
+	const double midy = (minY + maxY) / 2;
 
-	const VertexType *p1 = new VertexType(midx - 20 * deltaMax, midy - deltaMax);
-	const VertexType *p2 = new VertexType(midx, midy + 20 * deltaMax);
-	const VertexType *p3 = new VertexType(midx + 20 * deltaMax, midy - deltaMax);
+	// these are the points of the supertriangle
+	Point *sp1 = new Point(midx - 20 * deltaMax, midy - deltaMax);
+	Point *sp2 = new Point(midx, midy + 20 * deltaMax);
+	Point *sp3 = new Point(midx + 20 * deltaMax, midy - deltaMax);
 
 	// Create a list of triangles, and add the supertriangle in it
-	_triangles.push_back(new TriangleType(p1, p2, p3));
+	_triangles.push_back(new Triangle(sp1, sp2, sp3));
 
-	for(auto p = begin(vertices); p != end(vertices); p++)
+	for (auto p = begin(vertices); p != end(vertices); p++)
 	{
-		std::vector<WallType *> polygon;
+		std::vector<Wall *> polygon;
 
-		for(auto & t : _triangles)
+		// if the current point p fits inside the current triangle,
+		// this triangle will become bad.
+		for (auto &t : _triangles)
 		{
-			if(t->circumCircleContains(*p))
+			if (t->circumCircleContains(*p))
 			{
+			   // this is a bad triangle
 				t->isBad = true;
-				polygon.push_back(new Wall<T>{t->a, t->b});
-				polygon.push_back(new Wall<T>{t->b, t->c});
-				polygon.push_back(new Wall<T>{t->c, t->a});
+
+				// keep the walls of the bad triangle
+				polygon.push_back(new Wall(t->a, t->b));
+				polygon.push_back(new Wall(t->b, t->c));
+				polygon.push_back(new Wall(t->c, t->a));
 			}
 		}
 
-		_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [](TriangleType *t)
+		// remove all the bad triangles
+      std::vector<Triangle *> delt;
+		_triangles.erase(std::remove_if(begin(_triangles), end(_triangles),
+      [&delt](Triangle *t)
 		{
-			return t->isBad;
+			bool c = t->isBad;
+			if (c)
+         {
+			   delt.push_back(t);
+         }
+			return c;
 		}), end(_triangles));
+      for (auto tr: delt)
+      {
+         std::cout << "delete triangle a\n";
+         delete tr;
+      }
 
-		for(auto e1 = begin(polygon); e1 != end(polygon); ++e1)
+		// mark all the walls which are shared between 2 bad triangles as bad walls
+		for (auto e1 = begin(polygon); e1 != end(polygon); ++e1)
 		{
-			for(auto e2 = e1 + 1; e2 != end(polygon); ++e2)
+			for (auto e2 = e1 + 1; e2 != end(polygon); ++e2)
 			{
-				if(almost_equal(*e1, *e2))
+				if (almost_equal(*e1, *e2))
 				{
                (*e1)->isBad = true;
                (*e2)->isBad = true;
@@ -69,56 +161,107 @@ Maze<T>::triangulate(std::vector<VertexType *> &vertices)
 			}
 		}
 
-		polygon.erase(std::remove_if(begin(polygon), end(polygon), [](WallType *e)
+		// remove all bad walls
+      std::vector<Wall *> dele;
+		polygon.erase(std::remove_if(begin(polygon), end(polygon), [&dele](Wall *e)
 		{
-			return e->isBad;
+			bool c = e->isBad;
+			if (c)
+         {
+			   dele.push_back(e);
+         }
+			return c;
 		}), end(polygon));
+      for (auto ee: dele)
+      {
+         std::cout << "delete wall\n";
+         delete ee;
+      }
 
-		for(const auto e : polygon)
-			_triangles.push_back(new TriangleType(e->v, e->w, *p));
-
+		// for each of the remaining walls
+		//    make a new triangle the wall and the current point
+		// don't keep the walls, only use the endpoints of each
+		for (const auto e : polygon)
+		{
+         _triangles.push_back(new Triangle(e->v, e->w, *p));
+         delete e;
+      }
 	}
 
-	_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [p1, p2, p3](TriangleType *t)
+	// sp1, sp2 and sp3 are the vertices of the super triangle
+	// remove all the triangles which contain a vertex from the supertriangle
+	std::vector<Triangle *> del;
+	_triangles.erase(std::remove_if(begin(_triangles), end(_triangles), [sp1, sp2, sp3, &del](Triangle *t)
 	{
-		return t->containsVertex(p1) || t->containsVertex(p2) || t->containsVertex(p3);
+	   bool c = t->containsVertex(sp1) || t->containsVertex(sp2) || t->containsVertex(sp3);
+	   if (c)
+      {
+	      del.push_back(t);
+      }
+	   return c;
 	}), end(_triangles));
+   for (auto tr: del)
+   {
+      std::cout << "delete triangle b\n";
+      delete tr;
+   }
 
-	for(const auto t : _triangles)
+   // make a list of all the walls
+   WallMap wm;
+	for (const auto t : _triangles)
 	{
-		_Walls.push_back(new Wall<T>{t->a, t->b});
-		_Walls.push_back(new Wall<T>{t->b, t->c});
-		_Walls.push_back(new Wall<T>{t->c, t->a});
+		_walls.push_back(new Wall(t->a, t->b));
+		_walls.push_back(new Wall(t->b, t->c));
+		_walls.push_back(new Wall(t->c, t->a));
+
+      wm.new_wall(t->a, t->b);
+      wm.new_wall(t->b, t->c);
+      wm.new_wall(t->c, t->a);
+
 	}
+   wm.show();
 
 	return _triangles;
 }
 
-template<typename T>
-const std::vector<typename Maze<T>::TriangleType *>&
-Maze<T>::getTriangles() const
+const std::vector<Triangle *>&
+Maze::getTriangles() const
 {
 	return _triangles;
 }
 
-template<typename T>
-const std::vector<typename Maze<T>::WallType *>&
-Maze<T>::getWalls() const
+const std::vector<Wall *> &
+Maze::getWalls() const
 {
-	return _Walls;
+	return _walls;
 }
 
-template<typename T>
-const std::vector<typename Maze<T>::VertexType *>&
-Maze<T>::getVertices() const
+const std::vector<Point *>&
+Maze::getVertices() const
 {
 	return _vertices;
 }
 
-template<typename T>
-void Maze<T>::connect()
+Maze::~Maze()
 {
-   for (const dt::Wall<T> *wa: _Walls)
+   std::cout << "~Maze()\n";
+   for (auto t: _triangles)
+   {
+      delete t;
+   }
+   for (auto w: _walls)
+   {
+      delete w;
+   }
+   for (auto v: _vertices)
+   {
+      delete v;
+   }
+}
+
+void Maze::connect()
+{
+   for (const dt::Wall *wa: _walls)
    {
       std::cout << "Wall " << wa->nr << "\n";
       if (wa->v->border && wa->w->border)
@@ -129,13 +272,12 @@ void Maze<T>::connect()
       {
          std::cout << "   corner wall\n";
       }
+      if (wa->isBad)
+      {
+         std::cout << "   isbad\n";
+      }
    }
 }
-
-
-
-   template class Maze<float>;
-template class Maze<double>;
 
 } // namespace dt
 

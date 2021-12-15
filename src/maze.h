@@ -1,5 +1,5 @@
-#ifndef H_Maze
-#define H_Maze
+#ifndef Maze_H
+#define Maze_H
 
 #include "point.h"
 #include "wall.h"
@@ -10,21 +10,12 @@
 
 namespace dt {
 
-template<typename T>
 class Maze
 {
 public:
-	using Type         = T;
-	using VertexType   = Point<Type>;
-	using WallType     = Wall<Type>;
-	using TriangleType = Triangle<Type>;
-
-	static_assert(std::is_floating_point<Maze<T>::Type>::value,
-		"Type must be floating-point");
-
-	std::vector<TriangleType *> _triangles;
-	std::vector<WallType *>     _Walls;
-	std::vector<VertexType *>   _vertices;
+	std::vector<Triangle *> _triangles;
+	std::vector<Wall *>     _walls;
+	std::vector<Point *>    _vertices;
    bool                      found;  // is the solution found?
 
 public:
@@ -32,11 +23,12 @@ public:
 	Maze() = default;
 	Maze(const Maze&) = delete;
 	Maze(Maze&&) = delete;
+   ~Maze();
 
-	const std::vector<TriangleType *>& triangulate(std::vector<VertexType *> &vertices);
-	const std::vector<TriangleType *>& getTriangles() const;
-	const std::vector<WallType *>& getWalls() const;
-	const std::vector<VertexType *>& getVertices() const;
+	const std::vector<Triangle *>& triangulate(std::vector<Point *> &vertices);
+	const std::vector<Triangle *>& getTriangles() const;
+	const std::vector<Wall *>& getWalls() const;
+	const std::vector<Point *>& getVertices() const;
    void connect();
 
 	Maze& operator=(const Maze&) = delete;

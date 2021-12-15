@@ -1,5 +1,5 @@
-#ifndef H_NUMERIC
-#define H_NUMERIC
+#ifndef NUMERIC_H
+#define NUMERIC_H
 
 #include <math.h>
 #include <limits>

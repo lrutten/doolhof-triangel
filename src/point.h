@@ -1,5 +1,5 @@
-#ifndef H_Point
-#define H_Point
+#ifndef Point_H
+#define Point_H
 
 #include "numeric.h"
 
@@ -9,41 +9,32 @@
 
 namespace dt {
 
-template<typename T>
 class Point
 {
 public:
-	using Type = T;
 	Point() = default;
-	Point(const Point<T> &v) = default;
-	Point(Point<T>&&) = default;
-	Point(const T vx, const T vy);
+	Point(const Point &v) = default;
+	Point(Point &&) = default;
+	Point(const double vx, const double vy);
 
-	T dist2(const Point<T> &v) const;
-	T dist(const Point<T> &v) const;
-	T norm2() const;
+	double dist2(const Point &v) const;
+	double dist(const Point &v) const;
+	double norm2() const;
 
-	Point &operator=(const Point<T>&) = default;
-	Point &operator=(Point&&) = default;
-	bool operator ==(const Point<T> &v) const;
-	template<typename U>
-	friend std::ostream &operator <<(std::ostream &str, const Point<U> &v);
+	Point &operator=(const Point &) = default;
+	Point &operator=(Point &&) = default;
+	bool operator ==(const Point &v) const;
+	friend std::ostream &operator <<(std::ostream &str, const Point &v);
 
-	T x;
-	T y;
+	double x;
+	double y;
    bool corner;
    bool border;
 
-	static_assert(std::is_floating_point<Point<T>::Type>::value,
+	static_assert(std::is_floating_point<double>::value,
 		"Type must be floating-point");
 };
 
-template<typename T>
-bool almost_equal(const Point<T> *v1, const Point<T> *v2)
-{
-   return v1 == v2;
-	//return almost_equal(v1->x, v2->x) && almost_equal(v1->y, v2->y);
-}
 
 } // namespace dt
 

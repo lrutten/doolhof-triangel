@@ -17,7 +17,7 @@
 #include "triangle.h"
 #include "maze.h"
 
-double distance(const dt::Point<double> *p1, const dt::Point<double> *p2)
+double distance(const dt::Point *p1, const dt::Point *p2)
 {
    double dx = p1->x - p2->x;
    double dy = p1->y - p2->y;
@@ -25,7 +25,7 @@ double distance(const dt::Point<double> *p1, const dt::Point<double> *p2)
    return sqrt(dx*dx + dy*dy);
 }
 
-bool too_close(const	std::vector<dt::Point<double> *> &points, const dt::Point<double> *pn, const double max_dist)
+bool too_close(const	std::vector<dt::Point *> &points, const dt::Point *pn, const double max_dist)
 {
    for (const auto p : points)
    {
@@ -39,17 +39,17 @@ bool too_close(const	std::vector<dt::Point<double> *> &points, const dt::Point<d
 
 int main(int argc, char * argv[])
 {
+   const int width  = 800;
+   const int height = 800;
+   const int grid   = 400;
+   const double dfactor = 0.8;
+   const double max_dist = dfactor*grid;
 	int numberPoints = 40;
 	if (argc>1)
 	{
 		numberPoints = atoi(argv[1]);
 	}
 
-	const int width  = 800;
-	const int height = 600;
-	const int grid   = 50;
-	const double dfactor = 0.8;
-	const double max_dist = dfactor*grid;
 
 	std::default_random_engine eng(std::random_device{}());
 	std::uniform_real_distribution<double> dist_w(0, width);
@@ -57,15 +57,15 @@ int main(int argc, char * argv[])
 
 	std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
-	std::vector<dt::Point<double> *> points;
+	std::vector<dt::Point *> points;
 
 	// horizontal border
    for (int i = 1; i < width/grid; ++i)
    {
-      dt::Point<double> *p = new dt::Point<double>{static_cast<double>(grid*i), 0.0};
+      dt::Point *p = new dt::Point{static_cast<double>(grid*i), 0.0};
       p->border = true;
       points.push_back(p);
-      dt::Point<double> *p2 = new dt::Point<double>{static_cast<double>(grid*i), static_cast<double>(height)};
+      dt::Point *p2 = new dt::Point{static_cast<double>(grid*i), static_cast<double>(height)};
       p2->border = true;
       points.push_back(p2);
    }
@@ -73,26 +73,26 @@ int main(int argc, char * argv[])
    // vertical border
    for (int i = 1; i < height/grid; ++i)
    {
-      dt::Point<double> *p = new dt::Point<double>{0.0, static_cast<double>(grid*i)};
+      dt::Point *p = new dt::Point{0.0, static_cast<double>(grid*i)};
       points.push_back(p);
-      dt::Point<double> *p2 = new dt::Point<double>{static_cast<double>(width), static_cast<double>(grid*i)};
+      dt::Point *p2 = new dt::Point{static_cast<double>(width), static_cast<double>(grid*i)};
       points.push_back(p2);
    }
 
    // 4 corners
-   dt::Point<double> *pc1 = new dt::Point<double>{static_cast<double>(0.0), static_cast<double>(0.0)};
+   dt::Point *pc1 = new dt::Point{static_cast<double>(0.0), static_cast<double>(0.0)};
    pc1->border = true;
    pc1->corner = true;
    points.push_back(pc1);
-   dt::Point<double> *pc2 = new dt::Point<double>{static_cast<double>(width), static_cast<double>(0.0)};
+   dt::Point *pc2 = new dt::Point{static_cast<double>(width), static_cast<double>(0.0)};
    pc2->border = true;
    pc2->corner = true;
    points.push_back(pc2);
-   dt::Point<double> *pc3 = new dt::Point<double>{static_cast<double>(0.0), static_cast<double>(height)};
+   dt::Point *pc3 = new dt::Point{static_cast<double>(0.0), static_cast<double>(height)};
    pc3->border = true;
    pc3->corner = true;
    points.push_back(pc3);
-   dt::Point<double> *pc4 = new dt::Point<double>{static_cast<double>(width), static_cast<double>(height)};
+   dt::Point *pc4 = new dt::Point{static_cast<double>(width), static_cast<double>(height)};
    pc4->border = true;
    pc4->corner = true;
    points.push_back(pc4);
@@ -100,7 +100,7 @@ int main(int argc, char * argv[])
 
    for (int i = 0; i < numberPoints; ++i)
 	{
-      dt::Point<double> *p = new dt::Point<double>{dist_w(eng), dist_h(eng)};
+      dt::Point *p = new dt::Point{dist_w(eng), dist_h(eng)};
 
       if (!too_close(points, p, max_dist))
       {
@@ -112,14 +112,14 @@ int main(int argc, char * argv[])
       }
 	}
 
-	dt::Maze<double> *triangulation = new dt::Maze<double>();
+	dt::Maze *triangulation = new dt::Maze();
 	const auto start = std::chrono::high_resolution_clock::now();
-	const std::vector<dt::Triangle<double> *> triangles = triangulation->triangulate(points);
+	const std::vector<dt::Triangle *> triangles = triangulation->triangulate(points);
 	const auto end = std::chrono::high_resolution_clock::now();
 	const std::chrono::duration<double> diff = end - start;
 
 	std::cout << triangles.size() << " triangles generated in " << diff.count() << "s\n";
-	const std::vector<dt::Wall<double> *> walls = triangulation->getWalls();
+	const std::vector<dt::Wall *> walls = triangulation->getWalls();
 
    triangulation->connect();
 
@@ -130,44 +130,44 @@ int main(int argc, char * argv[])
    }
     */
 
-	// SFML window
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Maze triangulation");
-	window.setFramerateLimit(1);
+   bool gui = true;
+   if (gui)
+   {
+      // SFML window
+      sf::RenderWindow window(sf::VideoMode(width, height), "Maze triangulation");
+      window.setFramerateLimit(1);
 
-	// Transform each points of each vector as a rectangle
-	for(const auto p : points)
-	{
-		sf::RectangleShape s{sf::Vector2f(4, 4)};
-		s.setPosition(static_cast<float>(p->x), static_cast<float>(p->y));
-		window.draw(s);
-	}
+      // Transform each points of each vector as a rectangle
+      for (const auto p : points) {
+         sf::RectangleShape s{sf::Vector2f(4, 4)};
+         s.setPosition(static_cast<float>(p->x), static_cast<float>(p->y));
+         window.draw(s);
+      }
 
-	std::vector<std::array<sf::Vertex, 2> > lines;
-	for(const auto &e: walls)
-	{
-		const std::array<sf::Vertex, 2> line
-		{{
-			sf::Vertex(sf::Vector2f(
-					static_cast<float>(e->v->x + 2.),
-					static_cast<float>(e->v->y + 2.))),
-			sf::Vertex(sf::Vector2f(
-					static_cast<float>(e->w->x + 2.),
-					static_cast<float>(e->w->y + 2.))),
-		}};
-		window.draw(line.data(), 2, sf::Lines);
-	}
+      std::vector<std::array<sf::Vertex, 2> > lines;
+      for (const auto &e: walls) {
+         const std::array<sf::Vertex, 2> line
+                 {{
+                          sf::Vertex(sf::Vector2f(
+                                  static_cast<float>(e->v->x + 2.),
+                                  static_cast<float>(e->v->y + 2.))),
+                          sf::Vertex(sf::Vector2f(
+                                  static_cast<float>(e->w->x + 2.),
+                                  static_cast<float>(e->w->y + 2.))),
+                  }};
+         window.draw(line.data(), 2, sf::Lines);
+      }
 
-	window.display();
+      window.display();
 
-	while (window.isOpen())
-	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-	}
+      while (window.isOpen()) {
+         sf::Event event;
+         while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+               window.close();
+         }
+      }
+   }
 
    delete triangulation;
 
