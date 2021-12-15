@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 {
    const int width  = 800;
    const int height = 800;
-   const int grid   = 400;
+   const int grid   = 200;
    const double dfactor = 0.8;
    const double max_dist = dfactor*grid;
 	int numberPoints = 40;
@@ -80,6 +80,9 @@ int main(int argc, char * argv[])
    }
 
    // 4 corners
+   //     1---2
+   //     |   |
+   //     4---3
    dt::Point *pc1 = new dt::Point{static_cast<double>(0.0), static_cast<double>(0.0)};
    pc1->border = true;
    pc1->corner = true;
@@ -123,7 +126,9 @@ int main(int argc, char * argv[])
 
 	triangulation->show();
 	
-   triangulation->connect();
+	triangulation->setCorners(pc1, pc2, pc3, pc4);
+
+   triangulation->make();
 
 
    bool gui = true;

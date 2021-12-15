@@ -30,7 +30,13 @@ public:
 	WallMap                 _walls;
 	std::vector<Point *>    _vertices;
    bool                     found;  // is the solution found?
-
+   Point                   *pc1;    // upper left
+   Point                   *pc2;    // upper right
+   Point                   *pc3;    // down  right
+   Point                   *pc4;    // down  left
+   Triangle                *start;  // start triangle
+   Triangle                *stop;   // stop triangle
+   
 public:
 
 	Maze() = default;
@@ -42,8 +48,11 @@ public:
 	const std::vector<Triangle *>& getTriangles() const;
 	std::vector<Wall *> getWalls();
 	const std::vector<Point *>& getVertices() const;
+	void setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4);
+	Triangle *findTriangle(Point *p);
    void connect();
    void show();
+   void make();
 
 	Maze& operator=(const Maze&) = delete;
 	Maze& operator=(Maze&&) = delete;

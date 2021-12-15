@@ -301,8 +301,117 @@ void Maze::show()
    for (Triangle *tr: _triangles)
    {
       std::cout << "   triangle  neighb " << tr->neighbours.size() << "\n";
+      std::cout << "      ";
+      if (tr->a->border)
+      {
+         std::cout << "b";
+      }
+      else
+      {
+         std::cout << "-";
+      }
+      if (tr->a->corner)
+      {
+         std::cout << "c";
+      }
+      else
+      {
+         std::cout << "-";
+      }
+      if (tr->b->border)
+      {
+         std::cout << "b";
+      }
+      else
+      {
+         std::cout << "-";
+      }
+      if (tr->b->corner)
+      {
+         std::cout << "c";
+      }
+      else
+      {
+         std::cout << "-";
+      }
+      if (tr->c->border)
+      {
+         std::cout << "b";
+      }
+      else
+      {
+         std::cout << "-";
+      }
+      if (tr->c->corner)
+      {
+         std::cout << "c";
+      }
+      else
+      {
+         std::cout << "-";
+      }
+      std::cout << "\n";
    }
 }
+
+// find a triangle which has p as vertex
+Triangle *Maze::findTriangle(Point *p)
+{
+   for (Triangle *tr: _triangles)
+   {
+      if (tr->containsVertex(p))
+      {
+         return tr;
+      }
+   }
+   return nullptr;
+}
+
+
+void Maze::setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4)
+{
+   pc1 = ppc1;
+   pc2 = ppc2;
+   pc3 = ppc3;
+   pc4 = ppc4;
+   
+   Triangle *ul = findTriangle(pc1);
+   Triangle *ur = findTriangle(pc2);
+   Triangle *dr = findTriangle(pc3);
+   Triangle *dl = findTriangle(pc4);
+   
+   // set stop
+   if (ul != nullptr && ul->neighbours.size() == 1)
+   {
+      stop = ul;
+   }
+   else
+   if (ur != nullptr && ur->neighbours.size() == 1)
+   {
+      stop = ur;
+   }
+   else
+   {
+      stop = ul;
+   }
+   
+   // set start
+   if (dr != nullptr && dr->neighbours.size() == 1)
+   {
+      start = dr;
+   }
+   else
+   if (dl != nullptr && dl->neighbours.size() == 1)
+   {
+      start = dl;
+   }
+   else
+   {
+      start = dr;
+   }
+}
+
+
 
 void Maze::connect()
 {
@@ -324,8 +433,19 @@ void Maze::connect()
    }
 }
 
+
+void Maze::make()
+{
+   if (start != nullptr)
+   {
+      start->step(0);
+   }
+}
+
 } // namespace dt
 
+
+/*
 
 
 #include <sys/types.h>
@@ -334,7 +454,6 @@ void Maze::connect()
 #include <stdlib.h>
 
 
-/*
 
 
 // Maak een doolhof.

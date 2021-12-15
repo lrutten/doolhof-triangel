@@ -11,7 +11,6 @@ Triangle::Triangle(Point *v1, Point *v2, Point *v3) :
 bool Triangle::containsVertex(const Point *v) const
 {
 	return a == v || b == v || c == v;
-	//return almost_equal(a, v) || almost_equal(b, v) || almost_equal(c, v);
 }
 
 bool Triangle::circumCircleContains(const Point *v) const
@@ -34,6 +33,21 @@ bool Triangle::circumCircleContains(const Point *v) const
 	const double circum_radius = a->dist2(circum);
 	const double dist = v->dist2(circum);
 	return dist <= circum_radius;
+}
+
+
+void Triangle::step(int d)
+{
+   if (!visited)
+   {
+      std::cout << "visited " << d << "\n";
+      visited = true;
+
+      for (Triangle *nb: neighbours)
+      {
+         nb->step(d + 1);
+      }
+   }
 }
 
 bool Triangle::operator ==(const Triangle &t) const

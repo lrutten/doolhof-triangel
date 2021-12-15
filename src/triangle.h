@@ -19,6 +19,7 @@ public:
 
 	bool containsVertex(const Point *v) const;
 	bool circumCircleContains(const Point *v) const;
+	void step(int d);
 
 	Triangle &operator=(const Triangle&) = default;
 	Triangle &operator=(Triangle&&) = default;
