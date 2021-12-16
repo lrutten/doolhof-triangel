@@ -39,9 +39,9 @@ bool too_close(const	std::vector<dt::Point *> &points, const dt::Point *pn, cons
 
 int main(int argc, char * argv[])
 {
-   const int width  = 575;
+   const int width  = 550;
    const int height = 750;
-   const int grid   = 25;
+   const int grid   = 12;
    const double dfactor = 0.8;
    const double max_dist = dfactor*grid;
 	int numberPoints = 4000;

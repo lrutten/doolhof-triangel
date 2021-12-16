@@ -543,6 +543,7 @@ void Maze::drawps(char *fn, bool metpad)
          {
             fprintf(fp, "%% solution line %d\n", iso++);
 
+            fprintf(fp, "0 255 0 %lf setrgbcolor\n");
             fprintf(fp, "%lf %lf newpath moveto\n", x1, y1);
             fprintf(fp, "%lf %lf lineto\n", x2, y2);
             fprintf(fp, "stroke\n");
