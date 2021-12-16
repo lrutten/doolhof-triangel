@@ -499,8 +499,6 @@ void Maze::drawps(char *fn, bool metpad)
       const double bx        = 12.0; // was 12.0
       const double by        = 22.0; // was 12.0
 
-      for (int pas=0; pas<2; pas++)
-      {
          int itr = 0;
          for (Triangle *tr: _triangles)
          {
@@ -516,92 +514,43 @@ void Maze::drawps(char *fn, bool metpad)
                   double wx = bx + wl->w->x;
                   double wy = by + wl->w->y;
 
-                  fprintf(fp, "%% wall %d\n", iw);
+                  fprintf(fp, "%% wall %d\n", iw++);
 
                   fprintf(fp, "%lf %lf newpath moveto\n", vx, vy);
                   fprintf(fp, "%lf %lf lineto\n", wx, wy);
                   fprintf(fp, "stroke\n");
-                  //fprintf(fp, "closepath\n");
-                  //fprintf(fp, "%lf %lf %lf setrgbcolor\n", r, g, b);
-                  //fprintf(fp, "0.8 setgray\n");
-                  //fprintf(fp, "fill\n");
                   fprintf(fp, "\n");
                }
             }
-
-            /*
-               // geen lijnen als de cel wit is
-               if (!c->wit)
-               {
-               // teken de lijnen
-
-               fprintf(fp, "%lf setlinewidth\n", linewidth);
-               fprintf(fp, "%lf %lf newpath moveto\n", x1, y1);
-
-               Muur *m;
-
-               // boven
-               m = c->boven;
-               fprintf(fp, "%% muur %d boven %d\n", m->nr, m->getekend);
-               if (!m->open && !m->getekend)
-               {
-                  fprintf(fp, "%lf %lf lineto\n", x2, y2);
-               }
-               else
-               {
-                  fprintf(fp, "%lf %lf moveto\n", x2, y2);
-               }
-               m->getekend = true;
-
-
-               // rechts
-               m = c->rechts;
-               fprintf(fp, "%% muur %d rechts %d\n", c->rechts->nr, c->rechts->getekend);
-               if (!m->open && !m->getekend)
-               {
-                  fprintf(fp, "%lf %lf lineto\n", x3, y3);
-               }
-               else
-               {
-                  fprintf(fp, "%lf %lf moveto\n", x3, y3);
-               }
-               m->getekend = true;
-
-               // onder
-               m = c->onder;
-               fprintf(fp, "%% muur %d onder %d\n", c->onder->nr, c->onder->getekend);
-               if (!m->open && !m->getekend)
-               {
-                  fprintf(fp, "%lf %lf lineto\n", x4, y4);
-               }
-               else
-               {
-                  fprintf(fp, "%lf %lf moveto\n", x4, y4);
-               }
-               m->getekend = true;
-
-               // links
-               m = c->links;
-               fprintf(fp, "%% muur %d links %d\n", m->nr, m->getekend);
-               if (!m->open && !m->getekend)
-               {
-                  fprintf(fp, "%lf %lf lineto\n", x1, y1);
-               }
-               else
-               {
-                  fprintf(fp, "%lf %lf moveto\n", x1, y1);
-               }
-               m->getekend = true;
-
-               //fprintf(fp, "closepath\n");
-               fprintf(fp, "0 setgray\n");
-               fprintf(fp, "%lf setlinewidth\n", linewidth);
-               fprintf(fp, "stroke\n");
-
-               fprintf(fp, "\n");
-               }
-               */
          }
+
+      // draw all the lines of the solution
+      double x1;
+      double y1;
+      int iso = 0;
+      bool first = true;
+      for (dt::Triangle *tr: path)
+      {
+         std::pair<int, int> pr = tr->getMiddle();
+         double x2 = bx + pr.first;
+         double y2 = by + pr.second;
+
+         if (first)
+         {
+            first = false;
+         }
+         else
+         {
+            fprintf(fp, "%% solution line %d\n", iso++);
+
+            fprintf(fp, "%lf %lf newpath moveto\n", x1, y1);
+            fprintf(fp, "%lf %lf lineto\n", x2, y2);
+            fprintf(fp, "stroke\n");
+            fprintf(fp, "\n");
+         }
+
+         x1 = x2;
+         y1 = y2;
       }
 
       /*
