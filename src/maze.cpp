@@ -237,13 +237,20 @@ Maze::triangulate(std::vector<Point *> &vertices)
    // make a list of all the walls
 	for (const auto t : _triangles)
 	{
+	   // construct 3 walls a-b, b-c and c-a
       Wall *w1 = _walls.new_wall(t->a, t->b);
       Wall *w2 = _walls.new_wall(t->b, t->c);
       Wall *w3 = _walls.new_wall(t->c, t->a);
-      
+
+      // add triangle to each wall
       w1->addTriangle(t);
       w2->addTriangle(t);
       w3->addTriangle(t);
+
+      // add the 3 walls to the triangle
+      t->walls.push_back(w1);
+      t->walls.push_back(w2);
+      t->walls.push_back(w3);
 	}
    // _walls.show();
    
@@ -272,6 +279,11 @@ Maze::getTriangles() const
 std::vector<Wall *> Maze::getWalls()
 {
 	return _walls.getWalls();
+}
+
+Triangle *Maze::getStop()
+{
+   return stop;
 }
 
 const std::vector<Point *>&
@@ -438,491 +450,35 @@ void Maze::make()
 {
    if (start != nullptr)
    {
-      start->step(0);
-   }
-}
+      found = false;
+      bool r = start->step(0, this);
+      std::cout << "Maze make end path " << path.size() << "\n";
 
-} // namespace dt
-
-
-/*
-
-
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-
-
-
-// Maak een doolhof.
-Doolhof::Doolhof()
-{
-   gevonden = false;
-
-   // maak eerst alle cellen
-   for (int ih = 0; ih<ho; ih++)
-   {
-      for (int ib = 0; ib<br; ib++)
+      for (Triangle *tr: path)
       {
-         cellen[ih][ib] = new Cel();
-      }
-   }
-
-   // maak alle muren tussen de cellen
-   for (int iy = 0; iy<ho; iy++)
-   {
-      for (int ix = 0; ix<br; ix++)
-      {
-         Cel *c = cellen[iy][ix];
-         Cel *cbo = getCel(ix,   iy-1);
-         Cel *cre = getCel(ix+1, iy);
-         Cel *con = getCel(ix,   iy+1);
-         Cel *cli = getCel(ix-1, iy);
-
-
-         // boven ok
-         if (c->boven == NULL || cbo != NULL && cbo->onder == NULL)
-         {
-            Muur *m = new Muur();
-            if (c->boven == NULL)
-            {
-               c->boven = m;
-            }
-            if (cbo != NULL && cbo->onder == NULL)
-            {
-               cbo->onder = m;
-            }
-         }
-
-         // rechts ok
-         if (c->rechts == NULL || cre != NULL && cre->links == NULL)
-         {
-            Muur *m = new Muur();
-            if (c->rechts == NULL)
-            {
-               c->rechts = m;
-            }
-            if (cre != NULL && cre->links == NULL)
-            {
-               cre->links = m;
-            }
-         }
-
-         // onder ok
-         if (c->onder == NULL || con != NULL && con->boven == NULL)
-         {
-            Muur *m = new Muur();
-            if (c->onder == NULL)
-            {
-               c->onder = m;
-            }
-            if (con != NULL && con->boven == NULL)
-            {
-               con->boven = m;
-            }
-         }
-         // links
-         if (c->links == NULL || cli != NULL && cli->rechts == NULL)
-         {
-            Muur *m = new Muur();
-            if (c->links == NULL)
-            {
-               c->links = m;
-            }
-            if (cli != NULL && cli->rechts == NULL)
-            {
-               cli->rechts = m;
-            }
-         }
-      }
-   }
-
-   cellen[0][0]->boven->open = true;
-   cellen[ho-1][br-1]->onder->open = true;
-}
-
-// Breek een doolhof af.
-Doolhof::~Doolhof()
-{
-   for (int ih = 0; ih<ho; ih++)
-   {
-      for (int ib = 0; ib<br; ib++)
-      {
-         delete cellen[ih][ib];
+         tr->onpad = true;
       }
    }
 }
 
-// Markeer een cel als wit
-void Doolhof::zetwit(int x, int y)
-{
-   Cel *c = getCel(x, y);
-   if (c != NULL)
-   {
-      c->zetwit();
-   }
-}
-
-// Voeg een positie bij aan het pad
-void Doolhof::zetpad(int d, int x, int y)
-{
-   if (!gevonden)
-   {
-      printf("zetpad %d %d %d\n", d, x, y);
-
-      xx[d] = x;
-      yy[d] = y;
-   }
-   if (x == br-1 && y == ho-1)
-   {
-      gevonden = true;
-      diepte = d+1;
-      printf("gevonden %d\n", diepte);
-   }
-}
-
-// Recursieve stapmethode
-// Zoekt een volgende niet-bezochte buurcel
-void Doolhof::stap(int d, int x, int y)
-{
-   Cel *c = getCel(x,y);
-   if (c != NULL)
-   {
-      if (!c->bezocht)
-      {
-         c->bezocht = true;
-
-         //printf("x %d y %d\n", x, y);
-         //toonmetrand();
-
-         zetpad(d, x, y);
-
-           //Elke bit in vlaggen stelt een
-           //richting voor.
-         int vlaggen = 15;
-         while (vlaggen != 0)
-         {
-             // Overloop de richtingen 
-             // in een willekeurige volgorde. 
-             int keuze = random() % 4;
-             //printf("keuze %d\n", keuze);
-
-             // Is de richting nog niet bezocht?
-             int masker = 1 << keuze;
-             if ((vlaggen & masker) != 0)
-             {
-                vlaggen &= ~(1 << keuze);
-                //printf("keuze2 %d\n", keuze);
-
-                int x2;
-                int y2;
-                Cel *c2;
-                switch (keuze)
-                {
-                   case 0:
-                      // boven
-                      // Ga naar de buurcel.
-                      x2 = x;
-                      y2 = y-1;
-                      c2 = getCel(x2, y2);
-
-                      // Indien de cel bestaat en 
-                      // niet bezocht is.
-                      if (c2 != NULL && !c2->bezocht)
-                      {
-                         // Stel de muur open
-                         c->boven->open = true;
-                         stap(d+1, x2, y2);
-                      }
-                      break;
-
-                   case 1:
-                      // rechts
-                      x2 = x+1;
-                      y2 = y;
-                      c2 = getCel(x2, y2);
-                      if (c2 != NULL && !c2->bezocht)
-                      {
-                         c->rechts->open = true;
-                         stap(d+1, x2, y2);
-                      }
-                      break;
-
-                   case 2:
-                      // onder
-                      x2 = x;
-                      y2 = y+1;
-                      c2 = getCel(x2, y2);
-                      if (c2 != NULL && !c2->bezocht)
-                      {
-                         c->onder->open = true;
-                         stap(d+1, x2, y2);
-                      }
-                      break;
-
-                   case 3:
-                      // links
-                      x2 = x-1;
-                      y2 = y;
-                      c2 = getCel(x2, y2);
-                      if (c2 != NULL && !c2->bezocht)
-                      {
-                         c->links->open = true;
-                         stap(d+1, x2, y2);
-                      }
-                      break;
-                }
-             }
-         }
-      }
-   }
-}
-
-// Maak het doolhof.
-void Doolhof::maak()
-{
-   stap(0, 0, 0);
-
-   if (gevonden)
-   {
-      // Markeer de cellen die
-      // deel uitmaken van het pad.
-      for (int i=0; i<diepte; i++)
-      {
-         Cel *c = getCel(xx[i],yy[i]);
-         c->pad = true;
-      }
-   }
-}
-
-// Haal een cel op als die bestaat.
-Cel *Doolhof::getCel(int x, int y)
-{
-   if (x >= 0 && x < br && y >=0 && y <ho)
-   {
-      return cellen[y][x];
-   }
-   else
-   {
-      return NULL;
-   }
-}
 
 
- //Toon het doolhof. Geef aan of een
- //cel bezocht is of niet.
-
-void Doolhof::toon()
-{
-   for (int ih = 0; ih<ho; ih++)
-   {
-      for (int ib = 0; ib<br; ib++)
-      {
-         if (cellen[ih][ib]->bezocht)
-         {
-            printf("x");
-         }
-         else
-         {
-            printf(".");
-         }
-
-      }
-      printf("\n");
-   }
-}
-
-// Toon het doolhof met muren.
-void Doolhof::toonmetrand()
-{
-   for (int ih = 0; ih<ho; ih++)
-   {
-      // boven
-      for (int ib = 0; ib<br; ib++)
-      {
-         if (cellen[ih][ib]->boven->open)
-         {
-            printf("+ +");
-         }
-         else
-         {
-            printf("+-+");
-         }
-
-      }
-      printf("\n");
-
-      // links, midden en rechts
-      for (int ib = 0; ib<br; ib++)
-      {
-         if (cellen[ih][ib]->links->open)
-         {
-            printf(" ");
-         }
-         else
-         {
-            printf("|");
-         }
-
-         if (cellen[ih][ib]->bezocht)
-         {
-            printf("x");
-         }
-         else
-         {
-            printf(" ");
-         }
-
-         if (cellen[ih][ib]->rechts->open)
-         {
-            printf(" ");
-         }
-         else
-         {
-            printf("|");
-         }
-
-      }
-      printf("\n");
-
-      // onder
-      for (int ib = 0; ib<br; ib++)
-      {
-         if (cellen[ih][ib]->onder->open)
-         {
-            printf("+ +");
-         }
-         else
-         {
-            printf("+-+");
-         }
-      }
-      printf("\n");
-   }
-}
-
-
-void Doolhof::toonmetenkelerand()
-{
-   for (int ih = 0; ih<ho; ih++)
-   {
-      // boven
-      for (int ib = 0; ib<br; ib++)
-      {
-         if (cellen[ih][ib]->boven->open)
-         {
-            printf("+ ");
-         }
-         else
-         {
-            printf("+-");
-         }
-
-      }
-      printf("+\n");
-
-      // links, midden
-      for (int ib = 0; ib<br; ib++)
-      {
-         if (cellen[ih][ib]->links->open)
-         {
-            printf(" ");
-         }
-         else
-         {
-            printf("|");
-         }
-
-         if (cellen[ih][ib]->pad)
-         {
-            printf("x");
-         }
-         else
-         {
-            printf(" ");
-         }
-      }
-
-      // rechterrand
-      if (cellen[ih][br-1]->rechts->open)
-      {
-         printf(" ");
-      }
-      else
-      {
-         printf("|");
-      }
-      printf("\n");
-   }
-
-   // onderrand
-   for (int ib = 0; ib<br; ib++)
-   {
-      if (cellen[ho-1][ib]->onder->open)
-      {
-         printf("+ ");
-      }
-      else
-      {
-         printf("+-");
-      }
-    }
-    printf("+\n");
-}
-
-
-void Doolhof::toonmetmuren()
-{
-   for (int ih = 0; ih<ho; ih++)
-   {
-      // boven
-      for (int ib = 0; ib<br; ib++)
-      {
-         printf("  %2d  ", cellen[ih][ib]->boven->nr);
-      }
-      printf("\n");
-
-      // links en rechts
-      for (int ib = 0; ib<br; ib++)
-      {
-         printf("%2d %2d ",  
-           cellen[ih][ib]->links->nr,
-           cellen[ih][ib]->rechts->nr);
-      }
-      printf("\n");
-
-      // onder
-      for (int ib = 0; ib<br; ib++)
-      {
-         printf("  %2d  ", cellen[ih][ib]->onder->nr);
-      }
-      printf("\n");
-   }
-}
 
 
 // Markeer alle muren als niet getekend.
-void Doolhof::cleargetekend()
+void Maze::clearDrawn()
 {
-   for (int ih = 0; ih<ho; ih++)
+   for (Wall *w: _walls.getWalls())
    {
-      for (int ib = 0; ib<br; ib++)
-      {
-         cellen[ih][ib]->boven->getekend  = false;
-         cellen[ih][ib]->rechts->getekend = false;
-         cellen[ih][ib]->onder->getekend  = false;
-         cellen[ih][ib]->links->getekend  = false;
-      }
+      w->drawn = false;
    }
 }
 
 
 // Schrijf het ps bestand.
-void Doolhof::tekenps(const char *fn, bool metpad)
+void Maze::drawps(char *fn, bool metpad)
 {
-   cleargetekend();
+   clearDrawn();
 
    FILE *fp = fopen(fn,"w");
    if (fp != NULL)
@@ -945,83 +501,35 @@ void Doolhof::tekenps(const char *fn, bool metpad)
 
       for (int pas=0; pas<2; pas++)
       {
-         for (int iy=0; iy<ho; iy++)
+         int itr = 0;
+         for (Triangle *tr: _triangles)
          {
-            for (int ix=0; ix<br; ix++)
+            fprintf(fp, "%% triangle %d\n", itr++);
+
+            int iw = 0;
+            for (Wall *wl: tr->walls)
             {
-               Cel *c = getCel(ix,iy);
-
-               double x1 = bx + zijde *ix;
-               double y1 = by + zijde *iy;
-               double x2 = x1 + zijde;
-               double y2 = y1;
-               double x3 = x1 + zijde;
-               double y3 = y1 + zijde;
-               double x4 = x1;
-               double y4 = y1 + zijde;
-
-               fprintf(fp, "%% cel %d, %d\n", ix, iy);
-
-               if (pas == 0)
+               if (!wl->open)
                {
-                  const bool gekleurd = true;
+                  double vx = bx + wl->v->x;
+                  double vy = by + wl->v->y;
+                  double wx = bx + wl->w->x;
+                  double wy = by + wl->w->y;
 
-                  double r = 1.0;
-                  double g = 1.0;
-                  double b = 1.0;
+                  fprintf(fp, "%% wall %d\n", iw);
 
-                  if (c->pad && metpad)
-                  {
-                     r = 0.8;
-                     g = 0.8;
-                     b = 0.8;
-                  }
-                  else
-                  if (gekleurd)
-                  {
-                     int ra = random() % 3;
-                     double vol  = 1.0;
-                     double half = 0.6;
-                     switch (ra)
-                     {
-                        case 0:
-                           r = vol;
-                           g = half;
-                           b = half;
-                           break;
-
-                        case 1:
-                           r = half;
-                           g = vol;
-                           b = half;
-                           break;
-
-                        case 2:
-                           r = half;
-                           g = half;
-                           b = vol;
-                           break;
-                     }
-                  }
-
-                  // teken het vullen
-                  if (!c->wit && (gekleurd || c->pad && metpad))
-                  {
-                     fprintf(fp, "%lf %lf newpath moveto\n", x1, y1);
-                     fprintf(fp, "%lf %lf lineto\n", x2, y2);
-                     fprintf(fp, "%lf %lf lineto\n", x3, y3);
-                     fprintf(fp, "%lf %lf lineto\n", x4, y4);
-                     //   fprintf(fp, "%lf %lf lineto\n", x1, y1);
-                     fprintf(fp, "closepath\n");
-                     fprintf(fp, "%lf %lf %lf setrgbcolor\n", r, g, b);
-                     //fprintf(fp, "0.8 setgray\n");
-                     fprintf(fp, "fill\n");
-                     fprintf(fp, "\n");
-                  }
+                  fprintf(fp, "%lf %lf newpath moveto\n", vx, vy);
+                  fprintf(fp, "%lf %lf lineto\n", wx, wy);
+                  fprintf(fp, "stroke\n");
+                  //fprintf(fp, "closepath\n");
+                  //fprintf(fp, "%lf %lf %lf setrgbcolor\n", r, g, b);
+                  //fprintf(fp, "0.8 setgray\n");
+                  //fprintf(fp, "fill\n");
+                  fprintf(fp, "\n");
                }
-               else
-               {
+            }
 
+            /*
                // geen lijnen als de cel wit is
                if (!c->wit)
                {
@@ -1092,11 +600,11 @@ void Doolhof::tekenps(const char *fn, bool metpad)
 
                fprintf(fp, "\n");
                }
-               }
-            }
+               */
          }
       }
 
+      /*
       // ingang
       double x1 = bx + zijde * (0);
       double y1 = by + zijde * (-1);
@@ -1137,7 +645,7 @@ void Doolhof::tekenps(const char *fn, bool metpad)
       fprintf(fp, "0 setgray\n");
       fprintf(fp, "%lf setlinewidth\n", linewidth);
       fprintf(fp, "stroke\n");
-
+       */
 
       fprintf(fp, "showpage\n");
 
@@ -1145,33 +653,4 @@ void Doolhof::tekenps(const char *fn, bool metpad)
    }
 }
 
-
-int main()
-{
-   srandom(getpid());
-
-   Doolhof *d = new Doolhof();
-
-   // Neem de witruimte over in het doolhof.
-   for (int x=0; x<Doolhof::br; x++)
-   {
-      for (int y=0; y<Doolhof::ho; y++)
-      {
-         if (figuur[x][y] != ' ')
-         {
-            d->zetwit(x,y);
-         }
-      }
-   }
-   d->maak();
-
-   //d->toonmetenkelerand();
-
-   //printf("-----------------\n");
-   //d->toonmetmuren();
-
-   d->tekenps("labyrint1.ps", false);
-   d->tekenps("labyrint1-opl.ps", true);
-   delete d;
-}
- */
+} // namespace dt

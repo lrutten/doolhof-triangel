@@ -1,3 +1,6 @@
+#include <random>
+#include <set>
+
 #include "triangle.h"
 
 namespace dt {
@@ -11,6 +14,13 @@ Triangle::Triangle(Point *v1, Point *v2, Point *v3) :
 bool Triangle::containsVertex(const Point *v) const
 {
 	return a == v || b == v || c == v;
+}
+
+std::pair<int, int> Triangle::getMiddle()
+{
+   int x = (a->x + b->x + c->x)/3;
+   int y = (a->y + b->y + c->y)/3;
+   return std::pair<int, int>(x, y);
 }
 
 bool Triangle::circumCircleContains(const Point *v) const
@@ -36,18 +46,83 @@ bool Triangle::circumCircleContains(const Point *v) const
 }
 
 
-void Triangle::step(int d)
+// find the wall between this and the nb triangle
+Wall *Triangle::getWall(Triangle *nb)
+{
+   std::cout << "getWall " << walls.size() << " " << nb->walls.size() << "\n";
+   for (Wall *w1: walls)
+   {
+      for (Wall *w2: nb->walls)
+      {
+         std::cout << "w1 w2\n";
+         if (w1 == w2)
+         {
+            std::cout << "neigh found\n";
+            return w1;
+         }
+      }
+   }
+   std::cout << "neigh not found\n";
+   return nullptr;
+}
+
+std::default_random_engine eng(std::random_device{}());
+//std::uniform_real_distribution<double> dist_h(0, height);
+
+bool Triangle::step(int d, Maze *mz)
 {
    if (!visited)
    {
-      std::cout << "visited " << d << "\n";
+      std::cout << "visited d " << d << "nb " << neighbours.size() << "\n";
       visited = true;
 
-      for (Triangle *nb: neighbours)
+      // add this triangle to the path
+      if (!mz->found)
       {
-         nb->step(d + 1);
+         std::cout << "path push " << mz->path.size() << "\n";
+         mz->path.push_back(this);
+      }
+
+      if (this == mz->getStop())
+      {
+         std::cout << "stop found\n";
+         mz->found = true;
+      }
+
+      std::uniform_int_distribution<int> dist_nb(0, neighbours.size() - 1);
+      std::set<int> visits;
+      while (visits.size() < neighbours.size())
+      {
+         int j = dist_nb(eng);
+         visits.insert(j);
+         std::cout << "   visited nb " << j << " visits " << visits.size() << "\n";
+         Triangle *nb = neighbours[j];
+         if (!nb->visited)
+         {
+            bool r = nb->step(d + 1, mz);
+            if (!mz->found && r)
+            {
+               mz->found = true;
+            }
+
+            // break the wall to this neighbour
+            Wall *w = getWall(nb);
+            if (w != nullptr)
+            {
+               std::cout << "open\n";
+               w->open = true;
+            }
+         }
+      }
+
+      if (!mz->found)
+      {
+         // remove this triangle from path
+         std::cout << "path pop " << mz->path.size() << "\n";
+         mz->path.pop_back();
       }
    }
+   return mz->found;
 }
 
 bool Triangle::operator ==(const Triangle &t) const

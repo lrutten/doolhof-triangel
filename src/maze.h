@@ -6,6 +6,7 @@
 #include "triangle.h"
 
 #include <vector>
+#include <map>
 #include <algorithm>
 
 namespace dt {
@@ -23,6 +24,9 @@ private:
    std::map<Point *, std::map<Point*, Wall *>> walls;
 };
 
+class Point;
+class Wall;
+
 class Maze
 {
 public:
@@ -36,7 +40,8 @@ public:
    Point                   *pc4;    // down  left
    Triangle                *start;  // start triangle
    Triangle                *stop;   // stop triangle
-   
+   std::vector<Triangle *> path;    // found path
+
 public:
 
 	Maze() = default;
@@ -53,6 +58,9 @@ public:
    void connect();
    void show();
    void make();
+   Triangle *getStop();
+   void clearDrawn();
+   void drawps(char *fn, bool withsol);
 
 	Maze& operator=(const Maze&) = delete;
 	Maze& operator=(Maze&&) = delete;

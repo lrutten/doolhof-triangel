@@ -39,12 +39,12 @@ bool too_close(const	std::vector<dt::Point *> &points, const dt::Point *pn, cons
 
 int main(int argc, char * argv[])
 {
-   const int width  = 800;
-   const int height = 800;
-   const int grid   = 200;
+   const int width  = 575;
+   const int height = 750;
+   const int grid   = 25;
    const double dfactor = 0.8;
    const double max_dist = dfactor*grid;
-	int numberPoints = 40;
+	int numberPoints = 4000;
 	if (argc>1)
 	{
 		numberPoints = atoi(argv[1]);
@@ -130,6 +130,8 @@ int main(int argc, char * argv[])
 
    triangulation->make();
 
+   triangulation->drawps("labyrint1.ps", false);
+   triangulation->drawps("labyrint1-opl.ps", true);
 
    bool gui = true;
    if (gui)
@@ -147,18 +149,56 @@ int main(int argc, char * argv[])
       }
 
       std::vector<std::array<sf::Vertex, 2> > lines;
-      for (const auto &e: walls) 
+      for (const auto e: walls)
       {
-         const std::array<sf::Vertex, 2> line
-                 {{
-                          sf::Vertex(sf::Vector2f(
-                                  static_cast<float>(e->v->x + 2.),
-                                  static_cast<float>(e->v->y + 2.))),
-                          sf::Vertex(sf::Vector2f(
-                                  static_cast<float>(e->w->x + 2.),
-                                  static_cast<float>(e->w->y + 2.))),
-                  }};
-         window.draw(line.data(), 2, sf::Lines);
+         if (!e->open)
+         {
+            const std::array<sf::Vertex, 2> line
+                    {{
+                             sf::Vertex(sf::Vector2f(
+                                     static_cast<float>(e->v->x + 2.),
+                                     static_cast<float>(e->v->y + 2.))),
+                             sf::Vertex(sf::Vector2f(
+                                     static_cast<float>(e->w->x + 2.),
+                                     static_cast<float>(e->w->y + 2.))),
+                     }};
+            window.draw(line.data(), 2, sf::Lines);
+         }
+      }
+
+      // draw a marker in the center of each triangle on the found path
+      int x1;
+      int y1;
+      bool first = true;
+      for (dt::Triangle *tr: triangulation->path)
+      {
+         std::pair<int, int> pr = tr->getMiddle();
+         int x2 = pr.first;
+         int y2 = pr.second;
+         sf::RectangleShape s{sf::Vector2f(6, 6)};
+         s.setPosition(static_cast<float>(x2), static_cast<float>(y2));
+         window.draw(s);
+
+         if (first)
+         {
+            first = false;
+         }
+         else
+         {
+            const std::array<sf::Vertex, 2> line
+                    {{
+                             sf::Vertex(sf::Vector2f(
+                                     static_cast<float>(x1),
+                                     static_cast<float>(y1))),
+                             sf::Vertex(sf::Vector2f(
+                                     static_cast<float>(x2),
+                                     static_cast<float>(y2))),
+                     }};
+            window.draw(line.data(), 2, sf::Lines);
+         }
+
+         x1 = x2;
+         y1 = y2;
       }
 
       window.display();
@@ -177,35 +217,3 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-
-
-/*
-int main2()
-{
-   srandom(getpid());
-
-   Doolhof *d = new Doolhof();
-
-   // Neem de witruimte over in het doolhof.
-   for (int x=0; x<Doolhof::br; x++)
-   {
-      for (int y=0; y<Doolhof::ho; y++)
-      {
-         if (figuur[x][y] != ' ')
-         {
-            d->zetwit(x,y);
-         }
-      }
-   }
-   d->maak();
-
-   //d->toonmetenkelerand();
-
-   //printf("-----------------\n");
-   //d->toonmetmuren();
-
-   d->tekenps("labyrint1.ps", false);
-   d->tekenps("labyrint1-opl.ps", true);
-   delete d;
-}
- */

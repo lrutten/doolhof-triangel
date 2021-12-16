@@ -6,8 +6,11 @@
 #include "numeric.h"
 #include "point.h"
 #include "wall.h"
+#include "maze.h"
 
 namespace dt {
+
+class Maze;
 
 class Triangle
 {
@@ -19,7 +22,9 @@ public:
 
 	bool containsVertex(const Point *v) const;
 	bool circumCircleContains(const Point *v) const;
-	void step(int d);
+	bool step(int d, Maze *mz);
+   Wall *getWall(Triangle *nb);
+   std::pair<int, int> getMiddle();
 
 	Triangle &operator=(const Triangle&) = default;
 	Triangle &operator=(Triangle&&) = default;
