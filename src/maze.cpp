@@ -389,8 +389,8 @@ void Maze::setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4)
    
    Triangle *ul = findTriangle(pc1);
    Triangle *ur = findTriangle(pc2);
-   Triangle *dr = findTriangle(pc3);
-   Triangle *dl = findTriangle(pc4);
+   Triangle *br = findTriangle(pc3);
+   Triangle *bl = findTriangle(pc4);
    
    // set stop
    if (ul != nullptr && ul->neighbours.size() == 1)
@@ -408,39 +408,45 @@ void Maze::setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4)
    }
    
    // set start
-   if (dr != nullptr && dr->neighbours.size() == 1)
+   if (br != nullptr && br->neighbours.size() == 1)
    {
-      start = dr;
+      start = br;
    }
    else
-   if (dl != nullptr && dl->neighbours.size() == 1)
+   if (bl != nullptr && bl->neighbours.size() == 1)
    {
-      start = dl;
+      start = bl;
    }
    else
    {
-      start = dr;
+      start = br;
    }
-}
 
-
-
-void Maze::connect()
-{
-   for (const dt::Wall *wa: _walls.getWalls())
+   // open the start wall
+   if (start != nullptr)
    {
-      std::cout << "Wall " << wa->nr << "\n";
-      if (wa->v->border && wa->w->border)
+      Wall *wsta = start->findCornerWall();
+      if (wsta != nullptr)
       {
-         std::cout << "   border wall\n";
+         wsta->open = true;
       }
-      if (wa->v->corner || wa->w->corner)
+      else
       {
-         std::cout << "   corner wall\n";
+         std::cout << "start wall not found\n";
       }
-      if (wa->isBad)
+   }
+
+   // open the stop wall
+   if (stop != nullptr)
+   {
+      Wall *wsto = stop->findCornerWall();
+      if (wsto != nullptr)
       {
-         std::cout << "   isbad\n";
+         wsto->open = true;
+      }
+      else
+      {
+         std::cout << "stop wall not found\n";
       }
    }
 }
@@ -456,7 +462,7 @@ void Maze::make()
 
       for (Triangle *tr: path)
       {
-         tr->onpad = true;
+         tr->onpath = true;
       }
    }
 }
@@ -496,62 +502,114 @@ void Maze::drawps(char *fn, bool metpad)
 
       const double zijde     = 10;
       const double linewidth = 0.5;
-      const double bx        = 12.0; // was 12.0
-      const double by        = 22.0; // was 12.0
+      const double box        = 12.0; // was 12.0
+      const double boy        = 22.0; // was 12.0
 
-         int itr = 0;
-         for (Triangle *tr: _triangles)
+      // Draw all the filled polygons of the triangles
+      int itrf = 0;
+      for (Triangle *tr: _triangles)
+      {
+         fprintf(fp, "%% triangle %d fill\n", itrf++);
+
+         double ax = box + tr->a->x;
+         double ay = boy + tr->a->y;
+         double bx = box + tr->b->x;
+         double by = boy + tr->b->y;
+         double cx = box + tr->c->x;
+         double cy = boy + tr->c->y;
+
+         if (metpad && tr->onpath)
          {
-            fprintf(fp, "%% triangle %d\n", itr++);
-
-            int iw = 0;
-            for (Wall *wl: tr->walls)
+            switch (itrf%2)
             {
-               if (!wl->open)
-               {
-                  double vx = bx + wl->v->x;
-                  double vy = by + wl->v->y;
-                  double wx = bx + wl->w->x;
-                  double wy = by + wl->w->y;
-
-                  fprintf(fp, "%% wall %d\n", iw++);
-
-                  fprintf(fp, "%lf %lf newpath moveto\n", vx, vy);
-                  fprintf(fp, "%lf %lf lineto\n", wx, wy);
-                  fprintf(fp, "stroke\n");
-                  fprintf(fp, "\n");
-               }
+               case 0:
+                  fprintf(fp, "0.9 0.75 0.75 setrgbcolor\n");
+                  break;
+               case 1:
+                  fprintf(fp, "0.8 0.65 0.65 setrgbcolor\n");
+                  break;
             }
          }
+         else
+         {
+            switch (itrf%4)
+            {
+               case 0:
+                  fprintf(fp, "0.8 0.8 0.8 setrgbcolor\n");
+                  break;
+               case 1:
+                  fprintf(fp, "0.8 0.8 0.9 setrgbcolor\n");
+                  break;
+               case 2:
+                  fprintf(fp, "0.8 0.9 0.8 setrgbcolor\n");
+                  break;
+               case 3:
+                  fprintf(fp, "0.8 0.9 0.9 setrgbcolor\n");
+                  break;
+            }
+         }
+         fprintf(fp, "newpath\n");
+         fprintf(fp, "%lf %lf moveto\n", ax, ay);
+         fprintf(fp, "%lf %lf lineto\n", bx, by);
+         fprintf(fp, "%lf %lf lineto\n", cx, cy);
+         fprintf(fp, "fill\n");
+         fprintf(fp, "\n");
+      }
+
+
+      // Draw all the walls of the triangles
+      fprintf(fp, "0.0 0.0 0.0 setrgbcolor\n");
+      int itr = 0;
+      for (Triangle *tr: _triangles)
+      {
+         fprintf(fp, "%% triangle %d walls\n", itr++);
+
+         int iw = 0;
+         for (Wall *wl: tr->walls)
+         {
+            if (!wl->open)
+            {
+               double vx = box + wl->v->x;
+               double vy = boy + wl->v->y;
+               double wx = box + wl->w->x;
+               double wy = boy + wl->w->y;
+
+               fprintf(fp, "%% wall %d\n", iw++);
+               fprintf(fp, "%lf %lf newpath moveto\n", vx, vy);
+               fprintf(fp, "%lf %lf lineto\n", wx, wy);
+               fprintf(fp, "stroke\n");
+               fprintf(fp, "\n");
+            }
+         }
+      }
 
       // draw all the lines of the solution
       double x1;
       double y1;
       int iso = 0;
       bool first = true;
-      for (dt::Triangle *tr: path)
+      if (metpad)
       {
-         std::pair<int, int> pr = tr->getMiddle();
-         double x2 = bx + pr.first;
-         double y2 = by + pr.second;
+         for (dt::Triangle *tr: path) {
+            std::pair<int, int> pr = tr->getMiddle();
+            double x2 = box + pr.first;
+            double y2 = boy + pr.second;
 
-         if (first)
-         {
-            first = false;
+            if (first) {
+               first = false;
+            } else {
+               fprintf(fp, "%% solution line %d\n", iso++);
+
+               fprintf(fp, "0 255 0 %lf setrgbcolor\n");
+               fprintf(fp, "%lf %lf newpath moveto\n", x1, y1);
+               fprintf(fp, "%lf %lf lineto\n", x2, y2);
+               fprintf(fp, "stroke\n");
+               fprintf(fp, "\n");
+            }
+
+            x1 = x2;
+            y1 = y2;
          }
-         else
-         {
-            fprintf(fp, "%% solution line %d\n", iso++);
-
-            fprintf(fp, "0 255 0 %lf setrgbcolor\n");
-            fprintf(fp, "%lf %lf newpath moveto\n", x1, y1);
-            fprintf(fp, "%lf %lf lineto\n", x2, y2);
-            fprintf(fp, "stroke\n");
-            fprintf(fp, "\n");
-         }
-
-         x1 = x2;
-         y1 = y2;
       }
 
       /*

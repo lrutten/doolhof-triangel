@@ -25,6 +25,7 @@ public:
 	bool step(int d, Maze *mz);
    Wall *getWall(Triangle *nb);
    std::pair<int, int> getMiddle();
+   Wall *findCornerWall();
 
 	Triangle &operator=(const Triangle&) = default;
 	Triangle &operator=(Triangle&&) = default;
@@ -39,7 +40,7 @@ public:
    std::vector<Triangle *> neighbours;
 	bool              isBad = false;
    bool              visited; // is already visited
-   bool              onpad;   // this triangle is part of the path
+   bool              onpath;   // this triangle is part of the path
    bool              white;   // this triangle must be avoided
 
    void setwhite()

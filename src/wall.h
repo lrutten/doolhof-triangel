@@ -35,6 +35,8 @@ public:
    {
       return open;
    }
+   bool isBorder();
+   bool isCorner();
 
    void addTriangle(Triangle *tr)
    {

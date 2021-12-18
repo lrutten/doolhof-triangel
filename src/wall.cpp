@@ -21,7 +21,17 @@ operator<<(std::ostream &str, const Wall &e)
    return str << "Wall " << *e.v << ", " << *e.w;
 }
 
-bool almost_equal(const Wall *e1, const Wall *e2)
+bool Wall::isBorder()
+{
+   return w->border && v->border;
+}
+
+bool Wall::isCorner()
+{
+   return w->corner || v->corner;
+}
+
+   bool almost_equal(const Wall *e1, const Wall *e2)
 {
    return	(e1->v == e2->v && e1->w == e2->w) ||
             (e1->v == e2->w && e1->w == e2->v);

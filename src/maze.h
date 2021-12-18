@@ -55,7 +55,7 @@ public:
 	const std::vector<Point *>& getVertices() const;
 	void setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4);
 	Triangle *findTriangle(Point *p);
-   void connect();
+   //void connect();
    void show();
    void make();
    Triangle *getStop();

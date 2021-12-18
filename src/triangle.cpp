@@ -7,7 +7,7 @@ namespace dt {
 
 Triangle::Triangle(Point *v1, Point *v2, Point *v3) :
 	a(v1), b(v2), c(v3), isBad(false),
-   visited(false), onpad(false), white(false)
+   visited(false), onpath(false), white(false)
 {
 }
 
@@ -63,6 +63,18 @@ Wall *Triangle::getWall(Triangle *nb)
       }
    }
    std::cout << "neigh not found\n";
+   return nullptr;
+}
+
+Wall *Triangle::findCornerWall()
+{
+   for (Wall *w: walls)
+   {
+      if (w->isBorder() && w->isCorner())
+      {
+         return w;
+      }
+   }
    return nullptr;
 }
 
