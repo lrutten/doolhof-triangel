@@ -26,6 +26,7 @@ public:
    Wall *getWall(Triangle *nb);
    std::pair<int, int> getMiddle();
    Wall *findCornerWall();
+   void show();
 
 	Triangle &operator=(const Triangle&) = default;
 	Triangle &operator=(Triangle&&) = default;

@@ -17,9 +17,12 @@ public:
 	Point(Point &&) = default;
 	Point(const double vx, const double vy);
 
+	double getBorder();
+   void setBorder(bool b);
 	double dist2(const Point &v) const;
 	double dist(const Point &v) const;
 	double norm2() const;
+	void show();
 
 	Point &operator=(const Point &) = default;
 	Point &operator=(Point &&) = default;
@@ -29,10 +32,9 @@ public:
 	double x;
 	double y;
    bool corner;
-   bool border;
 
-	static_assert(std::is_floating_point<double>::value,
-		"Type must be floating-point");
+private:
+   bool border;
 };
 
 

@@ -39,16 +39,25 @@ bool too_close(const	std::vector<dt::Point *> &points, const dt::Point *pn, cons
 
 int main(int argc, char * argv[])
 {
+   int nrtriangles = 22;
+	if (argc > 1)
+	{
+		nrtriangles = atoi(argv[1]);
+	}
+
+   if (nrtriangles < 0)
+   {
+      std::cout << "give a positive numner\n";
+
+      return 1;
+   }
+
    const int width  = 550;
    const int height = 750;
-   const int grid   = 12;
+   const int grid   = width/nrtriangles;  //was fixed 12
    const double dfactor = 0.8;
    const double max_dist = dfactor*grid;
-	int numberPoints = 4000;
-	if (argc>1)
-	{
-		numberPoints = atoi(argv[1]);
-	}
+	int numberPoints = 10000;
 
 
 	std::default_random_engine eng(std::random_device{}());
@@ -63,10 +72,10 @@ int main(int argc, char * argv[])
    for (int i = 1; i < width/grid; ++i)
    {
       dt::Point *p = new dt::Point{static_cast<double>(grid*i), 0.0};
-      p->border = true;
+      p->setBorder(true);
       points.push_back(p);
       dt::Point *p2 = new dt::Point{static_cast<double>(grid*i), static_cast<double>(height)};
-      p2->border = true;
+      p2->setBorder(true);
       points.push_back(p2);
    }
 
@@ -74,8 +83,10 @@ int main(int argc, char * argv[])
    for (int i = 1; i < height/grid; ++i)
    {
       dt::Point *p = new dt::Point{0.0, static_cast<double>(grid*i)};
+      p->setBorder(true);
       points.push_back(p);
       dt::Point *p2 = new dt::Point{static_cast<double>(width), static_cast<double>(grid*i)};
+      p->setBorder(true);
       points.push_back(p2);
    }
 
@@ -84,22 +95,21 @@ int main(int argc, char * argv[])
    //     |   |
    //     4---3
    dt::Point *pc1 = new dt::Point{static_cast<double>(0.0), static_cast<double>(0.0)};
-   pc1->border = true;
+   pc1->setBorder(true);
    pc1->corner = true;
    points.push_back(pc1);
    dt::Point *pc2 = new dt::Point{static_cast<double>(width), static_cast<double>(0.0)};
-   pc2->border = true;
+   pc2->setBorder(true);
    pc2->corner = true;
    points.push_back(pc2);
    dt::Point *pc3 = new dt::Point{static_cast<double>(0.0), static_cast<double>(height)};
-   pc3->border = true;
+   pc3->setBorder(true);
    pc3->corner = true;
    points.push_back(pc3);
    dt::Point *pc4 = new dt::Point{static_cast<double>(width), static_cast<double>(height)};
-   pc4->border = true;
+   pc4->setBorder(true);
    pc4->corner = true;
    points.push_back(pc4);
-
 
    for (int i = 0; i < numberPoints; ++i)
 	{

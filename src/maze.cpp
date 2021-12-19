@@ -133,11 +133,15 @@ Maze::triangulate(std::vector<Point *> &vertices)
 	// Create a list of triangles, and add the supertriangle in it
 	_triangles.push_back(new Triangle(sp1, sp2, sp3));
 
+	sp1->setBorder(true);
+   sp2->setBorder(true);
+   sp3->setBorder(true);
+
 	for (auto p = begin(vertices); p != end(vertices); p++)
 	{
 		std::vector<Wall *> polygon;
 
-		// if the current point p fits inside the current triangle,
+		// if the current point p fits inside the current triangle's circle,
 		// this triangle will become bad.
 		for (auto &t : _triangles)
 		{
@@ -314,7 +318,7 @@ void Maze::show()
    {
       std::cout << "   triangle  neighb " << tr->neighbours.size() << "\n";
       std::cout << "      ";
-      if (tr->a->border)
+      if (tr->a->getBorder())
       {
          std::cout << "b";
       }
@@ -330,7 +334,7 @@ void Maze::show()
       {
          std::cout << "-";
       }
-      if (tr->b->border)
+      if (tr->b->getBorder())
       {
          std::cout << "b";
       }
@@ -346,7 +350,7 @@ void Maze::show()
       {
          std::cout << "-";
       }
-      if (tr->c->border)
+      if (tr->c->getBorder())
       {
          std::cout << "b";
       }
@@ -434,6 +438,7 @@ void Maze::setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4)
       {
          std::cout << "start wall not found\n";
       }
+      start->show();
    }
 
    // open the stop wall
@@ -448,6 +453,7 @@ void Maze::setCorners(Point *ppc1, Point *ppc2, Point *ppc3, Point *ppc4)
       {
          std::cout << "stop wall not found\n";
       }
+      stop->show();
    }
 }
 

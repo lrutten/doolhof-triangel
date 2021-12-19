@@ -3,10 +3,21 @@
 namespace dt {
 
 Point::Point(const double vx, const double vy) :
-	x(vx), y(vy)
-{}
+	x(vx), y(vy), border(false), corner(false)
+{
+}
 
-double Point::dist2(const Point &v) const
+double Point::getBorder()
+{
+   return border;
+}
+
+void Point::setBorder(bool b)
+{
+   border = b;
+}
+
+   double Point::dist2(const Point &v) const
 {
 	const double dx = x - v.x;
 	const double dy = y - v.y;
@@ -21,6 +32,28 @@ double Point::dist(const Point &v) const
 double Point::norm2() const
 {
 	return x * x + y * y;
+}
+
+void Point::show()
+{
+   std::cout << "   Point " << x << " " << y << " ";
+   if (border)
+   {
+      std::cout << "b";
+   }
+   else
+   {
+      std::cout << "-";
+   }
+   if (corner)
+   {
+      std::cout << "c";
+   }
+   else
+   {
+      std::cout << "-";
+   }
+   std::cout << "\n";
 }
 
 bool Point::operator==(const Point &v) const

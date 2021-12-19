@@ -78,6 +78,18 @@ Wall *Triangle::findCornerWall()
    return nullptr;
 }
 
+void Triangle::show()
+{
+   std::cout << "Triangle\n";
+   a->show();
+   b->show();
+   c->show();
+   for (Wall *w: walls)
+   {
+      w->show();
+   }
+}
+
 std::default_random_engine eng(std::random_device{}());
 //std::uniform_real_distribution<double> dist_h(0, height);
 

@@ -19,6 +19,7 @@ public:
 	Wall &operator=(const Wall&) = default;
 	Wall &operator=(Wall&&) = default;
 	bool operator ==(const Wall &e) const;
+   void show();
 
 	friend std::ostream &operator <<(std::ostream &str, const Wall &e);
 

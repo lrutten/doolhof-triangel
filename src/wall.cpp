@@ -21,9 +21,31 @@ operator<<(std::ostream &str, const Wall &e)
    return str << "Wall " << *e.v << ", " << *e.w;
 }
 
+void Wall::show()
+{
+   std::cout << "   Wall ";
+   if (isBorder())
+   {
+      std::cout << "b";
+   }
+   else
+   {
+      std::cout << "-";
+   }
+   if (isCorner())
+   {
+      std::cout << "c";
+   }
+   else
+   {
+      std::cout << "-";
+   }
+   std::cout << "\n";
+}
+
 bool Wall::isBorder()
 {
-   return w->border && v->border;
+   return w->getBorder() && v->getBorder();
 }
 
 bool Wall::isCorner()
